@@ -1,6 +1,7 @@
 package com.example.talenttrove.doa;
 
 import com.example.talenttrove.model.Users;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -31,6 +32,7 @@ public interface Users_Repo extends JpaRepository<Users, Long> {
                             @Param("email") String email);
 
     @Modifying
+    @Transactional
     @Query("UPDATE Users u SET u.password = ?2 WHERE u.email = ?1")
     void updatePassword(String email, String password);
 }

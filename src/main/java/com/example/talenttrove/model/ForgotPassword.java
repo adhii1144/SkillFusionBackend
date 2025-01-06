@@ -10,7 +10,6 @@ import java.util.Date;
 
 @Entity
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
 public class ForgotPassword {
@@ -33,6 +32,9 @@ public class ForgotPassword {
         this.otp = otp;
         this.otpexpireyTime = otpexpireyTime;
         this.user = user;
+    }
+    public ForgotPassword(){
+
     }
 
     // Getter method for fid

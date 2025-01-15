@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("skill-fusion/forgotPassword")
-@CrossOrigin(origins = "http://localhost:5173")
 public class ForgotPasswordController {
 
     private final ForgotPasswordService forgotPasswordService;

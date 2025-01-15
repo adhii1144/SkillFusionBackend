@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("skill-fusion")
-@CrossOrigin(origins = "http://localhost:5173")
 public class Profile_Controller {
 
     @Autowired
     private UserProfileService userProfileService;
+
 
     @GetMapping("/profile")
     public ResponseEntity<UserProfile> profile() {

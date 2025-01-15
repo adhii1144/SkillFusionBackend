@@ -5,6 +5,7 @@ import com.example.talenttrove.model.Users;
 import com.example.talenttrove.service.JwtService;
 import com.example.talenttrove.service.Users_service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,7 +20,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("skill-fusion")
-@CrossOrigin(origins = "http://localhost:5173")
 public class Users_controller {
 
     @Autowired

@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 
 public class UserProfile {
 
+    private int id;
     private String username;
     private String email;
     private String mobile;
@@ -73,5 +74,11 @@ public class UserProfile {
         this.website = website;
     }
 
+    public int getId() {
+        return id;
+    }
 
+    public void setId(int id) {
+        this.id = id;
+    }
 }

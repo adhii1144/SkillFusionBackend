@@ -1,19 +1,28 @@
 package com.example.talenttrove.model;
 
+import com.example.talenttrove.dto.RequestStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"connectedUsers", "forgotPassword", "profileImage"})
+@EqualsAndHashCode(of = "id")
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -48,21 +57,36 @@ public class Users {
 
     private LocalDateTime lastLogin;
 
-    public LocalDateTime getLastPasswordChangeTime() {
-        return lastPasswordChangeTime;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_connections",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "connected_user_id")
+    )
+    @JsonIgnore
+    private Set<Users> connectedUsers = new HashSet<>();
+
+    @OneToMany(mappedBy = "fromUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<ConnectionRequest> sentRequests = new HashSet<>();
+
+    @OneToMany(mappedBy = "toUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<ConnectionRequest> receivedRequests = new HashSet<>();
+
+    public void removeConnection(Users user) {
+        this.connectedUsers.remove(user);
+        user.getConnectedUsers().remove(this);
     }
 
-    public void setLastPasswordChangeTime(LocalDateTime lastPasswordChangeTime) {
-        this.lastPasswordChangeTime = lastPasswordChangeTime;
+    public void addConnection(Users user) {
+        this.connectedUsers.add(user);
+        user.getConnectedUsers().add(this);
     }
 
-    public int getPasswordChangeCountThisWeek() {
-        return passwordChangeCountThisWeek;
-    }
-
-    public void setPasswordChangeCountThisWeek(int passwordChangeCountThisWeek) {
-        this.passwordChangeCountThisWeek = passwordChangeCountThisWeek;
-    }
+    @Lob
+    @Column(name = "profile_image", columnDefinition = "LONGBLOB")
+    private byte[] profileImage;
 
     private LocalDateTime lastPasswordChangeTime;
     private int passwordChangeCountThisWeek;
@@ -70,18 +94,14 @@ public class Users {
     @Column(name = "skills", columnDefinition = "TEXT")
     private String skillJson;
 
-
-
-    public void setSkills(List<Skill> skillsList) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            this.skillJson = objectMapper.writeValueAsString(skillsList); // Convert list to JSON string
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-    }
+    @JsonIgnore
+    @OneToOne(mappedBy = "user")
+    private ForgotPassword forgotPassword;
 
     public List<Skill> getSkills() {
+        if (this.skillJson == null) {
+            return new ArrayList<>();
+        }
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.readValue(this.skillJson, new TypeReference<List<Skill>>() {});
@@ -91,95 +111,23 @@ public class Users {
         }
     }
 
-    @JsonIgnore
-    @OneToOne(mappedBy = "user")
-    private ForgotPassword forgotPassword;
-
-    public int getId() {
-        return id;
+    public void setSkills(List<Skill> skillsList) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            this.skillJson = objectMapper.writeValueAsString(skillsList);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public boolean hasConnectionWith(Users other) {
+        return this.connectedUsers.contains(other);
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getMobile() {
-        return mobile;
-    }
-
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getWebsite() {
-        return website;
-    }
-
-    public void setWebsite(String website) {
-        this.website = website;
-    }
-
-    public String getSkillJson() {
-        return skillJson;
-    }
-
-    public void setSkillJson(String skills) {
-        this.skillJson = skills;
-    }
-
-    public LocalDateTime getLastLogin() {
-        return lastLogin;
-    }
-
-    public void setLastLogin(LocalDateTime lastLogin) {
-        this.lastLogin = lastLogin;
+    public boolean hasPendingRequestWith(Users other) {
+        return this.sentRequests.stream()
+                .anyMatch(request -> request.getToUser().equals(other) && request.getStatus() == RequestStatus.PENDING) ||
+                this.receivedRequests.stream()
+                        .anyMatch(request -> request.getFromUser().equals(other) && request.getStatus() == RequestStatus.PENDING);
     }
 }

@@ -59,4 +59,10 @@ public class Users_service {
             return principal.toString();
         }
     }
-}
+
+        public Users findByEmail(String email) {
+            return usersRepo.findByEmail(email).orElse(null);
+        }
+
+    }
+

@@ -35,6 +35,8 @@ public interface Users_Repo extends JpaRepository<Users, Long> {
     @Transactional
     @Query("UPDATE Users u SET u.password = ?2 WHERE u.email = ?1")
     void updatePassword(String email, String password);
+
+    Optional<Users> findById(int id);
 }
 
 

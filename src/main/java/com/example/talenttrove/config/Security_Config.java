@@ -37,7 +37,7 @@ public class Security_Config {
         http
                 .csrf(custamizer -> custamizer.disable())
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("skill-fusion/**").permitAll()
+                        .requestMatchers("skill-fusion/**","skill-fusion/connections/").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session ->
